@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account profile registered via Google Auth",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "role": { "type": "string", "enum": ["auditor", "admin", "developer"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "displayName", "createdAt"]
+    },
+    "AuditSession": {
+      "title": "AuditSession",
+      "description": "Saved mobile security audit results or customized test configurations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 100 },
+        "score": { "type": "number" },
+        "patchedCount": { "type": "number" },
+        "totalCount": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "score", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile document indexed by user auth UID"
+    },
+    "/auditSessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/AuditSession" },
+      "description": "Audit session reports saved by authenticated users"
+    }
+  }
+}

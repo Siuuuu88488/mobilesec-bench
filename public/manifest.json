@@ -1,0 +1,33 @@
+{
+  "id": "/",
+  "name": "MobileSec Bench — Mobile Vulnerability Test Bench",
+  "short_name": "MobileSec",
+  "description": "Interactive Mobile Application Vulnerability Test Bench, OWASP Mobile Top 10 diagnostic lab, and virtual device security assessment simulator.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "categories": ["developer", "security", "education", "utilities"],
+  "icons": [
+    {
+      "src": "/pwa-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

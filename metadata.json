@@ -1,0 +1,6 @@
+{
+  "name": "MobileSec Bench — Mobile Vulnerability Test Bench",
+  "description": "Interactive Mobile Application Vulnerability Test Bench, OWASP Mobile Top 10 diagnostic lab, virtual device simulator, and secure code remediation studio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

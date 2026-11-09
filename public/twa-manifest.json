@@ -1,0 +1,35 @@
+{
+  "packageId": "com.mobilesec.bench",
+  "host": "ais-pre-piddlkeezebv5gxbes52if-751126202575.asia-east1.run.app",
+  "name": "MobileSec Bench — Mobile Vulnerability Test Bench",
+  "launcherName": "MobileSec",
+  "display": "standalone",
+  "themeColor": "#0A0A0A",
+  "themeColorDark": "#0A0A0A",
+  "navigationColor": "#0A0A0A",
+  "navigationColorDark": "#0A0A0A",
+  "navigationDividerColor": "#1A1A1A",
+  "navigationDividerColorDark": "#1A1A1A",
+  "backgroundColor": "#0A0A0A",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "/pwa-512x512.svg",
+  "maskableIconUrl": "/pwa-maskable-512x512.svg",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  }
+}

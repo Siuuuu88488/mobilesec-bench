@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mobilesec.bench",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7D:C2:59:7A:B4:BF:84:87:6F:04:8D:18:CE:6B:43:9D:6A:B2:99:93:32:02:4A:26:07:95:A0:6F:AC"
+      ]
+    }
+  }
+]
