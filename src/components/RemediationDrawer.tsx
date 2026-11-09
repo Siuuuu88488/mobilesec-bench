@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Vulnerability } from '../types/security';
 import {
   X,
@@ -32,6 +32,12 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
   const [copiedPatched, setCopiedPatched] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationLog, setSimulationLog] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (vulnerability) {
+      setSimulationLog(null);
+    }
+  }, [vulnerability?.id, vulnerability?.status]);
 
   if (!vulnerability) return null;
 

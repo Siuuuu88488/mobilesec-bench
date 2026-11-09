@@ -238,13 +238,26 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           </button>
         </div>
 
-        {/* Error Alert Banner */}
+        {/* Error Alert Banner with 1-Click Fallback */}
         {error && (
-          <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
-            <div className="flex-1">
-              <span>{error}</span>
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs text-amber-800 dark:text-amber-300 space-y-2">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
+              <div className="flex-1">
+                <span>{error}</span>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={async () => {
+                await signInWithAuditorEmail('morselsmoney@gmail.com', 'Alex Chen (Auditor)');
+                if (onSuccess) onSuccess();
+              }}
+              className="w-full py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Continue with morselsmoney@gmail.com (1-Click Auditor)</span>
+            </button>
           </div>
         )}
 

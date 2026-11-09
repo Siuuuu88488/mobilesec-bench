@@ -1,5 +1,21 @@
 import React from 'react';
-import { ShieldAlert, Sun, Moon, Play, RefreshCw, User, LogIn, Smartphone, BookOpen } from 'lucide-react';
+import {
+  ShieldAlert,
+  Sun,
+  Moon,
+  Play,
+  RefreshCw,
+  User,
+  LogIn,
+  Smartphone,
+  BookOpen,
+  Cpu,
+  Terminal,
+  Radio,
+  FileText,
+  Layers,
+  HardDrive
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { PWAInstallButton } from './PWAInstallButton';
 
@@ -29,7 +45,8 @@ export const Header: React.FC<HeaderProps> = ({
   const { user } = useAuth();
 
   return (
-    <header className="flex items-center justify-between gap-8 px-6 py-3.5 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-colors">
+    <div className="sticky top-0 z-30 bg-white dark:bg-neutral-900">
+      <header className="flex items-center justify-between gap-8 px-6 py-3.5 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-colors">
       {/* Zone 1: Single text element wordmark */}
       <div className="flex items-center gap-2.5 shrink-0">
         <div className="w-8 h-8 rounded-lg bg-neutral-950 dark:bg-neutral-100 flex items-center justify-center text-white dark:text-neutral-950 font-semibold shadow-xs">
@@ -195,16 +212,128 @@ export const Header: React.FC<HeaderProps> = ({
           {isAuditing ? (
             <>
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              <span>Scanning Sandbox...</span>
+              <span>Scanning...</span>
             </>
           ) : (
             <>
               <Play className="w-3.5 h-3.5" />
-              <span>Run Benchmark Audit</span>
+              <span>Run Audit</span>
             </>
           )}
         </button>
       </div>
     </header>
+
+    {/* Touch-Optimized Mobile / Android Tab Navigation Strip */}
+    <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto px-4 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/80 scrollbar-none select-none">
+      <button
+        onClick={() => setActiveTab('scanner')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+          activeTab === 'scanner'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+        }`}
+      >
+        <Cpu className="w-3.5 h-3.5 text-emerald-400" />
+        <span>Scanner</span>
+      </button>
+
+      <button
+        onClick={() => setActiveTab('bench')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+          activeTab === 'bench'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+        }`}
+      >
+        <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+        <span>OWASP Lab</span>
+      </button>
+
+      <button
+        onClick={() => setActiveTab('device')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+          activeTab === 'device'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+        }`}
+      >
+        <Smartphone className="w-3.5 h-3.5 text-cyan-400" />
+        <span>Device Sim</span>
+      </button>
+
+      <button
+        onClick={() => setActiveTab('filesystem')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+          activeTab === 'filesystem'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+        }`}
+      >
+        <HardDrive className="w-3.5 h-3.5 text-indigo-400" />
+        <span>Storage</span>
+      </button>
+
+      <button
+        onClick={() => setActiveTab('network')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+          activeTab === 'network'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+        }`}
+      >
+        <Radio className="w-3.5 h-3.5 text-violet-400" />
+        <span>Traffic</span>
+      </button>
+
+      <button
+        onClick={() => setActiveTab('manifest')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+          activeTab === 'manifest'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+        }`}
+      >
+        <FileText className="w-3.5 h-3.5 text-emerald-400" />
+        <span>Manifest</span>
+      </button>
+
+      <button
+        onClick={() => setActiveTab('terminal')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+          activeTab === 'terminal'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+        }`}
+      >
+        <Terminal className="w-3.5 h-3.5 text-yellow-400" />
+        <span>CLI</span>
+      </button>
+
+      <button
+        onClick={() => setActiveTab('playstore')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+          activeTab === 'playstore'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+        }`}
+      >
+        <Layers className="w-3.5 h-3.5 text-teal-400" />
+        <span>Play Store</span>
+      </button>
+
+      <button
+        onClick={() => setActiveTab('report')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+          activeTab === 'report'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+        }`}
+      >
+        <FileText className="w-3.5 h-3.5 text-blue-400" />
+        <span>Report</span>
+      </button>
+    </div>
+    </div>
   );
 };

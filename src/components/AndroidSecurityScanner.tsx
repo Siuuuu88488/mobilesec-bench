@@ -54,7 +54,7 @@ export const AndroidSecurityScanner: React.FC = () => {
     browser: string;
     biometricSupported: boolean;
     httpsEnforced: boolean;
-    ipLeakStatus: 'Secure (No Leak)' | 'Vulnerable (Local IP Exposed)' | 'Scanning...';
+    ipLeakStatus: 'Secure (No Leak)' | 'Secure (mDNS Masked)' | 'Vulnerable (Local IP Exposed)' | 'Scanning...';
     screenLockStatus: string;
     clipboardGuarded: boolean;
     webRtcAudited: boolean;
@@ -70,6 +70,7 @@ export const AndroidSecurityScanner: React.FC = () => {
     webRtcAudited: false
   });
 
+  const [usbStatusMsg, setUsbStatusMsg] = useState<{ text: string; isError?: boolean } | null>(null);
   const [deviceFindings, setDeviceFindings] = useState<ScanResultItem[]>([]);
   const [manifestFindings, setManifestFindings] = useState<ScanResultItem[]>([]);
   const [uploadedFileName, setUploadedFileName] = useState<string>('AndroidManifest.xml (Production Sample)');
@@ -160,31 +161,44 @@ export const AndroidSecurityScanner: React.FC = () => {
 
     // WebRTC IP leak audit
     let localIpFound = false;
+    let mdnsMasked = false;
     try {
       const rtc = new RTCPeerConnection({ iceServers: [] });
       rtc.createDataChannel('');
-      rtc.createOffer().then((offer) => rtc.setLocalDescription(offer));
+      rtc.createOffer().then((offer) => rtc.setLocalDescription(offer)).catch(() => {});
       rtc.onicecandidate = (event) => {
         if (event && event.candidate && event.candidate.candidate) {
           const candidate = event.candidate.candidate;
-          if (/\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/.test(candidate)) {
+          if (/\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})\b/.test(candidate)) {
             localIpFound = true;
+          } else if (/\.local\b/.test(candidate)) {
+            mdnsMasked = true;
           }
         }
       };
-      setTimeout(() => rtc.close(), 1000);
+      setTimeout(() => {
+        try {
+          rtc.close();
+        } catch (e) {}
+      }, 1000);
     } catch (e) {
       // Ignored
     }
 
     setTimeout(() => {
+      const computedIpStatus: 'Secure (No Leak)' | 'Secure (mDNS Masked)' | 'Vulnerable (Local IP Exposed)' = localIpFound
+        ? 'Vulnerable (Local IP Exposed)'
+        : mdnsMasked
+        ? 'Secure (mDNS Masked)'
+        : 'Secure (No Leak)';
+
       setDevicePosture({
         os: osInfo,
         isAndroid,
         browser: navigator.vendor || 'WebKit Engine',
         biometricSupported: hasBiometrics,
         httpsEnforced: window.location.protocol === 'https:',
-        ipLeakStatus: localIpFound ? 'Vulnerable (Local IP Exposed)' : 'Secure (No Leak)',
+        ipLeakStatus: computedIpStatus,
         screenLockStatus: hasBiometrics
           ? 'Secure (Hardware Biometrics & Enclave Ready)'
           : 'Warning (No Hardware Biometric Enclave Detected)',
@@ -1035,17 +1049,24 @@ export const AndroidSecurityScanner: React.FC = () => {
 
               <button
                 onClick={async () => {
+                  setUsbStatusMsg(null);
                   if ('usb' in navigator) {
                     try {
                       const device = await (navigator as any).usb.requestDevice({ filters: [] });
-                      alert(`Connected to USB Device: ${device.productName || 'Android Device'}`);
+                      setUsbStatusMsg({
+                        text: `Successfully paired with USB device: ${device.productName || 'Android ADB Target'} (Vendor ID: 0x${device.vendorId.toString(16)})`,
+                        isError: false
+                      });
                     } catch (e: any) {
                       if (e.name !== 'NotFoundError') {
-                        alert(`WebUSB notice: ${e.message}`);
+                        setUsbStatusMsg({ text: `WebUSB note: ${e.message}`, isError: true });
                       }
                     }
                   } else {
-                    alert('WebUSB is not supported in this browser version. Use Chrome/Chromium desktop or execute commands via the Security CLI tab.');
+                    setUsbStatusMsg({
+                      text: 'WebUSB API is not enabled in this browser. Use Chrome Desktop or run physical checks via the Security CLI tab.',
+                      isError: true
+                    });
                   }
                 }}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-neutral-900 dark:bg-neutral-100 dark:text-neutral-900 rounded-lg hover:bg-neutral-800 transition-colors whitespace-nowrap shadow-xs"
@@ -1054,6 +1075,28 @@ export const AndroidSecurityScanner: React.FC = () => {
                 <span>Pair USB Android Device</span>
               </button>
             </div>
+
+            {/* Inline USB Status Feedback */}
+            {usbStatusMsg && (
+              <div
+                className={`p-3 rounded-xl border text-xs flex items-center justify-between gap-3 ${
+                  usbStatusMsg.isError
+                    ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300'
+                    : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 shrink-0" />
+                  <span>{usbStatusMsg.text}</span>
+                </div>
+                <button
+                  onClick={() => setUsbStatusMsg(null)}
+                  className="font-bold hover:opacity-80 px-1"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
 
             <div className="pt-2 space-y-3">
               <h4 className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider">

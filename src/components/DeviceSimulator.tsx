@@ -51,6 +51,14 @@ export const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({
   const [searchFilter, setSearchFilter] = useState('');
   const [isExportedAdminOpen, setIsExportedAdminOpen] = useState(false);
   const [webViewExploitActive, setWebViewExploitActive] = useState(false);
+  const [simNotice, setSimNotice] = useState<{ message: string; type: 'success' | 'danger' | 'info' } | null>(null);
+
+  const showNotice = (message: string, type: 'success' | 'danger' | 'info' = 'info') => {
+    setSimNotice({ message, type });
+    setTimeout(() => {
+      setSimNotice((curr) => (curr?.message === message ? null : curr));
+    }, 4500);
+  };
 
   // Vulnerability states
   const isM1Patched = vulnerabilities.find((v) => v.id === 'vuln-m1-sharedprefs')?.status === 'patched';
@@ -138,7 +146,7 @@ export const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({
         app: 'System',
         message: 'Blocked external intent invocation to com.vaultpay.ui.AdminTransferActivity. (android:exported="false")'
       });
-      alert('Security Denial: Activity is not exported (android:exported="false"). External intent blocked!');
+      showNotice('Security Denial: Activity is not exported (android:exported="false"). External intent blocked!', 'success');
     } else {
       setIsExportedAdminOpen(true);
       onAddLog({
@@ -147,6 +155,7 @@ export const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({
         app: 'VaultPay',
         message: '[VULNERABILITY] AdminTransferActivity launched via external implicit Intent! Zero permission check enforced.'
       });
+      showNotice('Vulnerability Triggered: Unprotected exported AdminTransferActivity launched without intent permission!', 'danger');
     }
   };
 
@@ -158,7 +167,7 @@ export const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({
         app: 'VaultPay',
         message: 'Deep link scheme vaultpay:// rejected. Only verified Android App Links (https://pay.vaultpay.com) permitted with biometrics.'
       });
-      alert('Hardened: Insecure scheme rejected! Verified HTTPS App Links required with user authentication.');
+      showNotice('Hardened: Insecure scheme rejected! Verified HTTPS App Links required with user authentication.', 'success');
     } else {
       onAddLog({
         level: 'SEC',
@@ -166,7 +175,7 @@ export const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({
         app: 'VaultPay',
         message: '[VULNERABILITY] Processed unauthenticated deep link: vaultpay://transfer?amount=5000&recipient=attacker@dark.net without re-auth!'
       });
-      alert('Vulnerability Triggered! Deep link executed $5,000.00 transfer to attacker without requiring PIN or biometric verification!');
+      showNotice('Vulnerability Triggered! Deep link executed $5,000.00 transfer to attacker without requiring PIN or biometric verification!', 'danger');
     }
   };
 
@@ -226,6 +235,27 @@ export const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({
                 <Battery className="w-3 h-3" />
               </div>
             </div>
+
+            {/* In-device Toast Alert Banner */}
+            {simNotice && (
+              <div
+                className={`px-3 py-2 text-[10px] font-medium flex items-center justify-between gap-2 border-b shrink-0 animate-in slide-in-from-top-2 duration-150 ${
+                  simNotice.type === 'success'
+                    ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
+                    : simNotice.type === 'danger'
+                    ? 'bg-rose-950 text-rose-300 border-rose-800'
+                    : 'bg-neutral-800 text-neutral-200 border-neutral-700'
+                }`}
+              >
+                <span className="truncate">{simNotice.message}</span>
+                <button
+                  onClick={() => setSimNotice(null)}
+                  className="opacity-70 hover:opacity-100 font-bold shrink-0 text-xs"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
 
             {/* App Header Bar in Mobile */}
             <div className="px-4 py-2.5 bg-neutral-800/90 border-b border-neutral-700/60 flex items-center justify-between shrink-0">
@@ -450,9 +480,10 @@ export const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({
                     <button
                       onClick={() => {
                         if (isM6WvPatched) {
-                          alert('Hardened: WebView JavaScript interface disabled & file:/// access blocked by asset loader.');
+                          showNotice('Hardened: WebView JavaScript interface disabled & file:/// access blocked by asset loader.', 'success');
                         } else {
                           setWebViewExploitActive(true);
+                          showNotice('Vulnerability Triggered: window.AndroidBridge read internal database!', 'danger');
                           onAddLog({
                             level: 'SEC',
                             tag: 'WebViewBridge',
@@ -497,7 +528,7 @@ export const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({
                       <button
                         onClick={() => {
                           if (isM6SqlPatched) {
-                            alert('Secure: Parameterized selectionArgs protected against SQL injection.');
+                            showNotice('Secure: Parameterized selectionArgs protected against SQL injection.', 'success');
                             onAddLog({
                               level: 'I',
                               tag: 'ContentProvider',
@@ -505,7 +536,7 @@ export const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({
                               message: 'Query executed with SQLiteQueryBuilder. Injection payload safely bound.'
                             });
                           } else {
-                            alert('Vulnerability Detected! Injected: \' OR \'1\'=\'1 dumps entire files database across all users!');
+                            showNotice('Vulnerability Detected! Injected: \' OR \'1\'=\'1 dumps entire files database across all users!', 'danger');
                             onAddLog({
                               level: 'SEC',
                               tag: 'ContentProvider',
