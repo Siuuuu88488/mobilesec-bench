@@ -21,6 +21,7 @@ import {
 interface AuthPageProps {
   onSuccess?: () => void;
   onEnterGuest?: () => void;
+  onOpenReadme?: () => void;
   currentScore?: number;
   patchedCount?: number;
   totalCount?: number;
@@ -29,6 +30,7 @@ interface AuthPageProps {
 export const AuthPage: React.FC<AuthPageProps> = ({
   onSuccess,
   onEnterGuest,
+  onOpenReadme,
   currentScore = 20,
   patchedCount = 2,
   totalCount = 10
@@ -328,9 +330,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           </button>
         </form>
 
-        {/* Guest Mode Explorer button */}
-        {onEnterGuest && (
-          <div className="pt-1 text-center">
+        {/* Guest Mode Explorer button & README Guide */}
+        <div className="pt-1 flex flex-col items-center gap-2">
+          {onEnterGuest && (
             <button
               type="button"
               onClick={onEnterGuest}
@@ -338,8 +340,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             >
               Continue without account (Guest Auditor Preview) &rarr;
             </button>
-          </div>
-        )}
+          )}
+
+          {onOpenReadme && (
+            <button
+              type="button"
+              onClick={onOpenReadme}
+              className="inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline underline-offset-4 font-medium transition-colors"
+            >
+              <span>📱 How to install & run on Android or Desktop (README) &rarr;</span>
+            </button>
+          )}
+        </div>
 
         {/* Feature Checkpoints */}
         <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800 space-y-1.5 text-xs text-neutral-600 dark:text-neutral-400">

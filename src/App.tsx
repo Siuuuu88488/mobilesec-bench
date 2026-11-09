@@ -12,16 +12,18 @@ import { AuthPage } from './components/AuthPage';
 import { SimulatedTerminal } from './components/SimulatedTerminal';
 import { PlayStoreDeployHub } from './components/PlayStoreDeployHub';
 import { AndroidSecurityScanner } from './components/AndroidSecurityScanner';
+import { ReadmeModal } from './components/ReadmeModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { INITIAL_VULNERABILITIES } from './data/vulnerabilities';
 import { INITIAL_FILES, INITIAL_TRAFFIC, INITIAL_LOGS } from './data/deviceData';
 import { Vulnerability, DeviceLog, NetworkTraffic } from './types/security';
-import { ShieldAlert, Sun, Moon, ArrowRight, Smartphone, Terminal, Lock, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, Sun, Moon, ArrowRight, Smartphone, Terminal, Lock, CheckCircle2, BookOpen } from 'lucide-react';
 
 function DashboardApp() {
   const { profile, signOut } = useAuth();
   const [guestMode, setGuestMode] = useState(false);
   const [isDark, setIsDark] = useState(true);
+  const [isReadmeOpen, setIsReadmeOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<
     'bench' | 'device' | 'filesystem' | 'network' | 'manifest' | 'terminal' | 'report' | 'auth' | 'playstore' | 'scanner'
   >('scanner');
@@ -216,7 +218,15 @@ function DashboardApp() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setIsReadmeOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Guide & README</span>
+            </button>
+
             <button
               onClick={toggleTheme}
               aria-label="Toggle theme"
@@ -232,6 +242,7 @@ function DashboardApp() {
           <AuthPage
             onSuccess={() => setGuestMode(true)}
             onEnterGuest={() => setGuestMode(true)}
+            onOpenReadme={() => setIsReadmeOpen(true)}
             currentScore={currentScore}
             patchedCount={patchedCount}
             totalCount={vulnerabilities.length}
@@ -242,6 +253,9 @@ function DashboardApp() {
         <footer className="py-6 px-4 text-center text-xs text-neutral-400 border-t border-neutral-200 dark:border-neutral-800">
           MobileSec Bench · OWASP Mobile Security Testing Guide (MSTG) & Google Play Store Ready (TWA)
         </footer>
+
+        {/* Access Guide / README Modal */}
+        <ReadmeModal isOpen={isReadmeOpen} onClose={() => setIsReadmeOpen(false)} />
       </div>
     );
   }
@@ -265,6 +279,7 @@ function DashboardApp() {
         onPatchAll={handlePatchAll}
         allPatched={allPatched}
         isAuditing={isAuditing}
+        onOpenReadme={() => setIsReadmeOpen(true)}
       />
 
       {/* Main Audit Summary Strip */}
@@ -281,6 +296,7 @@ function DashboardApp() {
           <div className="py-8">
             <AuthPage
               onSuccess={() => setActiveTab('bench')}
+              onOpenReadme={() => setIsReadmeOpen(true)}
               currentScore={currentScore}
               patchedCount={patchedCount}
               totalCount={vulnerabilities.length}
@@ -360,6 +376,12 @@ function DashboardApp() {
           onClose={() => setIsReportOpen(false)}
         />
       )}
+
+      {/* Access Guide & README Modal */}
+      <ReadmeModal
+        isOpen={isReadmeOpen}
+        onClose={() => setIsReadmeOpen(false)}
+      />
     </div>
   );
 }

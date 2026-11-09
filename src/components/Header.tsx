@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, Sun, Moon, Play, RefreshCw, User, LogIn, Smartphone } from 'lucide-react';
+import { ShieldAlert, Sun, Moon, Play, RefreshCw, User, LogIn, Smartphone, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { PWAInstallButton } from './PWAInstallButton';
 
@@ -12,6 +12,7 @@ interface HeaderProps {
   onPatchAll: () => void;
   allPatched: boolean;
   isAuditing: boolean;
+  onOpenReadme?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -23,6 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   onPatchAll,
   allPatched,
   isAuditing,
+  onOpenReadme,
 }) => {
   const { user } = useAuth();
 
@@ -135,6 +137,17 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Zone 3: 1 primary action + theme toggle + PWA install + auth trigger */}
       <div className="flex items-center gap-3 shrink-0">
         <PWAInstallButton />
+
+        {onOpenReadme && (
+          <button
+            onClick={onOpenReadme}
+            className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+            title="View README & Android/Desktop Run Guide"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Guide & README</span>
+          </button>
+        )}
 
         <button
           onClick={toggleTheme}
