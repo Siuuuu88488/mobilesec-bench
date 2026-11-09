@@ -42,7 +42,8 @@ export const Header: React.FC<HeaderProps> = ({
   isAuditing,
   onOpenReadme,
 }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const activeUser = user || profile;
 
   return (
     <div className="sticky top-0 z-30 bg-white dark:bg-neutral-900">
@@ -175,22 +176,22 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* User Account / Google Login Button */}
-        {user ? (
+        {activeUser ? (
           <button
             onClick={() => setActiveTab('auth')}
             className="flex items-center gap-2 p-1 pl-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors text-xs font-medium text-neutral-800 dark:text-neutral-200"
-            title={user.email || 'Auditor Profile'}
+            title={activeUser.email || 'Auditor Profile'}
           >
-            <span className="truncate max-w-[120px] hidden sm:inline">{user.displayName || user.email}</span>
-            {user.photoURL ? (
+            <span className="truncate max-w-[120px] hidden sm:inline">{activeUser.displayName || activeUser.email}</span>
+            {activeUser.photoURL ? (
               <img
-                src={user.photoURL}
+                src={activeUser.photoURL}
                 alt="Profile"
                 className="w-6 h-6 rounded-full object-cover"
               />
             ) : (
               <div className="w-6 h-6 rounded-full bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 flex items-center justify-center font-bold text-xs">
-                {(user.displayName || user.email || 'U')[0].toUpperCase()}
+                {(activeUser.displayName || activeUser.email || 'U')[0].toUpperCase()}
               </div>
             )}
           </button>

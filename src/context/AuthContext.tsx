@@ -12,8 +12,7 @@ import {
   collection,
   query,
   where,
-  getDocs,
-  serverTimestamp
+  getDocs
 } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../lib/firebase';
 
@@ -25,7 +24,7 @@ export interface UserProfile {
   role: 'auditor' | 'admin' | 'developer';
   createdAt: string;
   updatedAt?: string;
-  provider: 'google' | 'demo';
+  provider: 'google';
 }
 
 export interface SavedAuditSession {
@@ -44,7 +43,6 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   signInWithGoogle: () => Promise<void>;
-  signInWithAuditorEmail: (email?: string, name?: string) => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
   saveAuditToFirestore: (title: string, score: number, patchedCount: number, totalCount: number) => Promise<boolean>;
@@ -59,18 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load demo profile from localStorage if present
   useEffect(() => {
-    const savedDemoUser = localStorage.getItem('mobilesec_active_user');
-    if (savedDemoUser) {
-      try {
-        const parsed = JSON.parse(savedDemoUser);
-        setProfile(parsed);
-      } catch (e) {
-        localStorage.removeItem('mobilesec_active_user');
-      }
-    }
-
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
@@ -82,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             const newProfile: UserProfile = {
               uid: currentUser.uid,
-              email: currentUser.email || 'morselsmoney@gmail.com',
+              email: currentUser.email || '',
               displayName: currentUser.displayName || 'Security Auditor',
               photoURL: currentUser.photoURL || undefined,
               role: 'auditor',
@@ -96,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('Error fetching or creating user profile in Firestore:', err);
           setProfile({
             uid: currentUser.uid,
-            email: currentUser.email || 'morselsmoney@gmail.com',
+            email: currentUser.email || '',
             displayName: currentUser.displayName || 'Security Auditor',
             photoURL: currentUser.photoURL || undefined,
             role: 'auditor',
@@ -105,11 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         }
       } else {
-        // If not authenticated in Firebase Auth, check if demo profile is active
-        const local = localStorage.getItem('mobilesec_active_user');
-        if (!local) {
-          setProfile(null);
-        }
+        setProfile(null);
       }
       setLoading(false);
     });
@@ -125,68 +108,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const signedInUser = result.user;
 
       const userDocRef = doc(db, 'users', signedInUser.uid);
-      const docSnap = await getDoc(userDocRef);
-
       let prof: UserProfile;
-      if (!docSnap.exists()) {
+
+      try {
+        const docSnap = await getDoc(userDocRef);
+        if (!docSnap.exists()) {
+          prof = {
+            uid: signedInUser.uid,
+            email: signedInUser.email || '',
+            displayName: signedInUser.displayName || 'Security Auditor',
+            photoURL: signedInUser.photoURL || undefined,
+            role: 'auditor',
+            provider: 'google',
+            createdAt: new Date().toISOString()
+          };
+          await setDoc(userDocRef, prof);
+        } else {
+          prof = docSnap.data() as UserProfile;
+        }
+      } catch (dbErr) {
         prof = {
           uid: signedInUser.uid,
-          email: signedInUser.email || 'morselsmoney@gmail.com',
+          email: signedInUser.email || '',
           displayName: signedInUser.displayName || 'Security Auditor',
           photoURL: signedInUser.photoURL || undefined,
           role: 'auditor',
           provider: 'google',
           createdAt: new Date().toISOString()
         };
-        await setDoc(userDocRef, prof);
-      } else {
-        prof = docSnap.data() as UserProfile;
       }
+
       setProfile(prof);
-      localStorage.setItem('mobilesec_active_user', JSON.stringify(prof));
     } catch (err: any) {
-      console.warn('Google Popup Sign-In note:', err);
-      if (err.code === 'auth/unauthorized-domain' || err.code === 'auth/popup-blocked') {
-        setError(
-          'Notice: Iframe domain restricted by Google OAuth. You can use the instant Google Auditor sign-in button below to test seamlessly.'
-        );
-      } else if (err.code === 'auth/popup-closed-by-user') {
-        setError('Google sign-in popup was dismissed before completing.');
+      console.warn('Google Sign-In notice:', err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in popup was dismissed before completing.');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError('This domain is not authorized in Firebase Auth. Add it to Authorized domains in Firebase Console.');
       } else {
         setError(err.message || 'Google authentication encountered an issue.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Instant Google Auditor login (handles iframe / developer sandbox test requirements)
-  const signInWithAuditorEmail = async (customEmail?: string, customName?: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const email = customEmail || 'morselsmoney@gmail.com';
-      const displayName = customName || 'Alex Chen (Auditor)';
-      const mockUid = `auditor-${btoa(email).slice(0, 12).toLowerCase()}`;
-
-      const demoProfile: UserProfile = {
-        uid: mockUid,
-        email,
-        displayName,
-        photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
-        role: 'auditor',
-        provider: 'demo',
-        createdAt: new Date().toISOString()
-      };
-
-      setProfile(demoProfile);
-      localStorage.setItem('mobilesec_active_user', JSON.stringify(demoProfile));
-
-      // Attempt syncing to Firestore
-      try {
-        await setDoc(doc(db, 'users', mockUid), demoProfile, { merge: true });
-      } catch (e) {
-        // Local state works seamlessly even if offline
       }
     } finally {
       setLoading(false);
@@ -197,6 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       await firebaseSignOut(auth);
+      setUser(null);
       setProfile(null);
       localStorage.removeItem('mobilesec_active_user');
     } catch (err: any) {
@@ -254,7 +215,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       if (items.length > 0) return items;
     } catch (e) {
-      // Fallback to local
+      // Fallback to local storage
     }
     const local = JSON.parse(localStorage.getItem('saved_audits') || '[]');
     return local;
@@ -270,7 +231,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         error,
         signInWithGoogle,
-        signInWithAuditorEmail,
         signOut,
         clearError,
         saveAuditToFirestore,

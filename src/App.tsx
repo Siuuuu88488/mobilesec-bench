@@ -295,8 +295,12 @@ function DashboardApp() {
         {activeTab === 'auth' && (
           <div className="py-8">
             <AuthPage
-              onSuccess={() => setActiveTab('bench')}
+              onSuccess={() => setActiveTab('scanner')}
               onOpenReadme={() => setIsReadmeOpen(true)}
+              onSignOut={() => {
+                setGuestMode(false);
+                setActiveTab('scanner');
+              }}
               currentScore={currentScore}
               patchedCount={patchedCount}
               totalCount={vulnerabilities.length}

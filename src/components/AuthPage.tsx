@@ -2,26 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useAuth, SavedAuditSession } from '../context/AuthContext';
 import {
   ShieldAlert,
-  ShieldCheck,
   CheckCircle2,
-  Lock,
   Mail,
-  UserCheck,
   LogOut,
-  ArrowRight,
-  Sparkles,
   AlertCircle,
   Database,
-  Cloud,
   Save,
   Clock,
-  Terminal
+  BookOpen
 } from 'lucide-react';
 
 interface AuthPageProps {
   onSuccess?: () => void;
   onEnterGuest?: () => void;
   onOpenReadme?: () => void;
+  onSignOut?: () => void;
   currentScore?: number;
   patchedCount?: number;
   totalCount?: number;
@@ -31,6 +26,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   onSuccess,
   onEnterGuest,
   onOpenReadme,
+  onSignOut,
   currentScore = 20,
   patchedCount = 2,
   totalCount = 10
@@ -40,16 +36,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     loading,
     error,
     signInWithGoogle,
-    signInWithAuditorEmail,
     signOut,
     clearError,
     saveAuditToFirestore,
     getSavedAuditSessions
   } = useAuth();
 
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const [customEmail, setCustomEmail] = useState('morselsmoney@gmail.com');
-  const [customName, setCustomName] = useState('Security Auditor');
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
   const [savedSessions, setSavedSessions] = useState<SavedAuditSession[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -60,15 +52,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   }, [profile]);
 
-  const handleGoogleAuth = async () => {
+  const handleGoogleSignIn = async () => {
     await signInWithGoogle();
-    if (onSuccess) onSuccess();
-  };
-
-  const handleAuditorAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await signInWithAuditorEmail(customEmail, customName);
-    if (onSuccess) onSuccess();
+    if (onSuccess && profile) {
+      onSuccess();
+    }
   };
 
   const handleSaveCurrentAudit = async () => {
@@ -84,31 +72,42 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setIsSaving(false);
   };
 
-  // If user is already authenticated, show the Profile & Workspace Session card
+  // Authenticated View
   if (profile) {
     return (
       <div className="max-w-3xl mx-auto p-6 space-y-6">
         <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-6 border-b border-neutral-100 dark:border-neutral-800">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-neutral-900 dark:bg-neutral-100 flex items-center justify-center text-white dark:text-neutral-900 font-bold text-xl shadow-xs">
-                {(profile.displayName || profile.email || 'A')[0].toUpperCase()}
-              </div>
+              {profile.photoURL ? (
+                <img
+                  src={profile.photoURL}
+                  alt={profile.displayName}
+                  className="w-14 h-14 rounded-full object-cover border-2 border-emerald-500 shadow-xs"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-neutral-900 dark:bg-neutral-100 flex items-center justify-center text-white dark:text-neutral-900 font-bold text-xl shadow-xs">
+                  {(profile.displayName || profile.email || 'A')[0].toUpperCase()}
+                </div>
+              )}
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
                   <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
                     {profile.displayName}
                   </h2>
-                  <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 font-semibold uppercase">
-                    Active Auditor
+                  <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 font-semibold uppercase flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                    <span>Google Authenticated</span>
                   </span>
                 </div>
-                <p className="text-xs text-neutral-500 font-mono flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>{profile.email}</span>
-                </p>
+                {profile.email && (
+                  <p className="text-xs text-neutral-500 font-mono flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>{profile.email}</span>
+                  </p>
+                )}
                 <div className="text-[11px] text-neutral-400 font-mono">
-                  Cloud ID: {profile.uid}
+                  Cloud UID: {profile.uid}
                 </div>
               </div>
             </div>
@@ -117,15 +116,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               <button
                 onClick={handleSaveCurrentAudit}
                 disabled={isSaving}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors whitespace-nowrap shadow-xs disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors whitespace-nowrap shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>{isSaving ? 'Saving...' : 'Save Current Audit'}</span>
               </button>
 
               <button
-                onClick={signOut}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-900/50 rounded-lg transition-colors whitespace-nowrap"
+                onClick={async () => {
+                  await signOut();
+                  onSignOut?.();
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-900/50 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sign Out</span>
@@ -187,9 +189,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     );
   }
 
-  // Not authenticated: Login & Signup Form
+  // Not authenticated: Clean Google Sign In
   return (
-    <div className="max-w-md mx-auto p-6 space-y-6">
+    <div className="max-w-md mx-auto p-4 sm:p-6 space-y-5">
       <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm space-y-6">
         {/* Brand Icon & Heading */}
         <div className="text-center space-y-2">
@@ -198,77 +200,40 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           </div>
           <div>
             <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-              {authMode === 'signin' ? 'Sign in to MobileSec Bench' : 'Create Auditor Account'}
+              Sign in with Google
             </h2>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-              {authMode === 'signin'
-                ? 'Authenticate with your Google email to access persistent testbench state.'
-                : 'Sign up using your Google email to save vulnerability audits to Firestore.'}
+              Authenticate using your Google account to sync OWASP security audit benchmarks and persistent sandbox state to Cloud Firestore.
             </p>
           </div>
         </div>
 
-        {/* Tab Toggle: Sign In vs Sign Up */}
-        <div className="flex items-center gap-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-xs">
-          <button
-            onClick={() => {
-              setAuthMode('signin');
-              clearError();
-            }}
-            className={`flex-1 py-1.5 font-medium rounded-md transition-colors ${
-              authMode === 'signin'
-                ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-xs'
-                : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200'
-            }`}
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => {
-              setAuthMode('signup');
-              clearError();
-            }}
-            className={`flex-1 py-1.5 font-medium rounded-md transition-colors ${
-              authMode === 'signup'
-                ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-xs'
-                : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200'
-            }`}
-          >
-            Sign Up
-          </button>
-        </div>
-
-        {/* Error Alert Banner with 1-Click Fallback */}
+        {/* Error Alert Banner */}
         {error && (
-          <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs text-amber-800 dark:text-amber-300 space-y-2">
+          <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl text-xs text-rose-800 dark:text-rose-300 flex items-start justify-between gap-2">
             <div className="flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
-              <div className="flex-1">
-                <span>{error}</span>
-              </div>
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-rose-500" />
+              <span>{error}</span>
             </div>
             <button
               type="button"
-              onClick={async () => {
-                await signInWithAuditorEmail('morselsmoney@gmail.com', 'Alex Chen (Auditor)');
-                if (onSuccess) onSuccess();
-              }}
-              className="w-full py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+              onClick={clearError}
+              className="text-xs text-rose-600 hover:text-rose-900 font-semibold cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Continue with morselsmoney@gmail.com (1-Click Auditor)</span>
+              Dismiss
             </button>
           </div>
         )}
 
-        {/* Option 1: Official Google OAuth Button */}
-        <div className="space-y-3">
+        {/* Google Authentication Button */}
+        <div>
           <button
-            onClick={handleGoogleAuth}
+            type="button"
+            onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-100 font-semibold text-xs rounded-xl border border-neutral-300 dark:border-neutral-700 transition-all shadow-xs disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-100 font-semibold text-sm rounded-xl border border-neutral-300 dark:border-neutral-700 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -286,70 +251,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>
-              {loading
-                ? 'Connecting to Google...'
-                : authMode === 'signin'
-                ? 'Continue with Google Account'
-                : 'Sign up with Google Account'}
-            </span>
+            <span>{loading ? 'Connecting to Google...' : 'Continue with Google'}</span>
           </button>
         </div>
 
-        {/* Separator */}
-        <div className="relative flex items-center justify-center">
-          <div className="border-t border-neutral-200 dark:border-neutral-800 w-full" />
-          <span className="bg-white dark:bg-neutral-900 px-3 text-[11px] text-neutral-400 uppercase font-mono">
-            Or Direct Google Email
-          </span>
-        </div>
-
-        {/* Option 2: Instant Google Email Sign-In (Guarantees 100% working model in sandboxes) */}
-        <form onSubmit={handleAuditorAuth} className="space-y-3">
-          <div>
-            <label className="text-[11px] font-medium text-neutral-600 dark:text-neutral-400">
-              Google Email Address
-            </label>
-            <input
-              type="email"
-              value={customEmail}
-              onChange={(e) => setCustomEmail(e.target.value)}
-              placeholder="e.g. auditor@gmail.com"
-              required
-              className="mt-1 w-full text-xs bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-lg px-3 py-2 text-neutral-900 dark:text-white focus:outline-none focus:border-neutral-400 font-mono"
-            />
-          </div>
-
-          <div>
-            <label className="text-[11px] font-medium text-neutral-600 dark:text-neutral-400">
-              Auditor Full Name
-            </label>
-            <input
-              type="text"
-              value={customName}
-              onChange={(e) => setCustomName(e.target.value)}
-              placeholder="e.g. Alex Chen"
-              className="mt-1 w-full text-xs bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-lg px-3 py-2 text-neutral-900 dark:text-white focus:outline-none focus:border-neutral-400"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-2 bg-neutral-900 dark:bg-neutral-100 hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-neutral-900 text-xs font-semibold rounded-xl transition-colors shadow-xs"
-          >
-            {authMode === 'signin'
-              ? 'Instant Google Auditor Login'
-              : 'Create Verified Google Auditor Account'}
-          </button>
-        </form>
-
-        {/* Guest Mode Explorer button & README Guide */}
-        <div className="pt-1 flex flex-col items-center gap-2">
+        {/* Guest Mode Explorer & README links */}
+        <div className="pt-2 flex flex-col items-center gap-2.5">
           {onEnterGuest && (
             <button
               type="button"
               onClick={onEnterGuest}
-              className="text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 underline underline-offset-4 transition-colors"
+              className="text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 underline underline-offset-4 transition-colors cursor-pointer"
             >
               Continue without account (Guest Auditor Preview) &rarr;
             </button>
@@ -359,26 +271,27 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <button
               type="button"
               onClick={onOpenReadme}
-              className="inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline underline-offset-4 font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline underline-offset-4 font-medium transition-colors cursor-pointer"
             >
-              <span>📱 How to install & run on Android or Desktop (README) &rarr;</span>
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>How to install & run on Android or Desktop (README) &rarr;</span>
             </button>
           )}
         </div>
 
         {/* Feature Checkpoints */}
-        <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800 space-y-1.5 text-xs text-neutral-600 dark:text-neutral-400">
+        <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800 space-y-2 text-xs text-neutral-600 dark:text-neutral-400">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-            <span>Syncs directly to Firestore (ai-studio-mobilesecbenchmo)</span>
+            <span>Secure Google Sign-In with Firebase Authentication</span>
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-            <span>Interactive Mobile Testing Guide (MSTG) workbench</span>
+            <span>Real-time persistence in Cloud Firestore (ai-studio-mobilesecbenchmo)</span>
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-            <span>Play Store Ready TWA packaging (.aab / .apk)</span>
+            <span>OWASP Mobile Top 10 interactive testbench & TWA packaging</span>
           </div>
         </div>
       </div>

@@ -344,7 +344,7 @@ npm run dev
 
 ## 🚀 Live Demo & Web App
 - Hosted Web App: ${appUrl}
-- Default Auditor Login: morselsmoney@gmail.com (or any Google Account)
+- Authentication: Google Sign-In with Firebase Auth
 
 ## 📱 How to Run or Install on Android
 Method 1: Instant Installation on Android (Chrome / Brave / Edge)
